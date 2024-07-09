@@ -4,8 +4,14 @@
 
 # TesWo API
 
-1. Levantar la base de datos
+1. Clonar el respositorio
+2. Instalar las dependencias
+3. Clonar el archivo `.env.template` y renombrarlo a `.env`
+4. Cambiar las varialbes de entorno
+5. Levantar la base de datos
 
 ```sh
 docket-compose up -d
 ```
+
+6. Levantar `yarn start:dev`
