@@ -107,7 +107,7 @@ export class ProductsService {
     const product = await this.productRepository.preload({
       id: id,
       ...toUpdate,
-    });
+    }); // Se utiliza para cargar una entidad existente desde la base de datos y preparar esa entidad para ser actualizada con nuevos datos
     if (!product)
       throw new NotFoundException(`Producto with id: ${id} not found`);
 
@@ -117,19 +117,21 @@ export class ProductsService {
 
     try {
       if (images) {
+        // Si tiene imagenes, elimina todas las imagenes y después las vuelve a crear
         await queryRunner.manager.delete(ProductImage, { product: { id } });
         product.images = images.map((image) =>
           this.productImageRepository.create({ url: image }),
         );
-      } else {
       }
-      // await this.productRepository.save(product);
       await queryRunner.manager.save(product);
+      // Guarda o actualiza la entidad product en la base de datos dentro del contexto de la transacción manejada por el QueryRunner
+      await queryRunner.commitTransaction();
       await queryRunner.release();
 
-      return product;
+      return this.findOnePlain(id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      // Revierte todos los cambios realizados durante la transacción actual.
       await queryRunner.release();
       this.handleDBExceptions(error);
     }
@@ -146,5 +148,15 @@ export class ProductsService {
     throw new InternalServerErrorException(
       'Unexpected error, check server logs',
     );
+  }
+
+  async deleteAllProducts() {
+    const query = this.productImageRepository.createQueryBuilder('product');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 }
