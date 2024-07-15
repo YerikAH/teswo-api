@@ -9,7 +9,7 @@ import {
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from 'uuid';
 import { ProductImage, Product } from './entities';
@@ -22,6 +22,8 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -100,18 +102,37 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    // const product = await this.productRepository.preload({
-    //   id: id, // Buscaque el id y carga todo el nuevo contenido.
-    //   ...updateProductDto,
-    // });
-    // if (!product)
-    //   throw new NotFoundException(`Producto with id: ${id} not found`);
-    // try {
-    //   await this.productRepository.save(product);
-    //   return product;
-    // } catch (error) {
-    //   this.handleDBExceptions(error);
-    // }
+    const { images, ...toUpdate } = updateProductDto;
+
+    const product = await this.productRepository.preload({
+      id: id,
+      ...toUpdate,
+    });
+    if (!product)
+      throw new NotFoundException(`Producto with id: ${id} not found`);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (images) {
+        await queryRunner.manager.delete(ProductImage, { product: { id } });
+        product.images = images.map((image) =>
+          this.productImageRepository.create({ url: image }),
+        );
+      } else {
+      }
+      // await this.productRepository.save(product);
+      await queryRunner.manager.save(product);
+      await queryRunner.release();
+
+      return product;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      this.handleDBExceptions(error);
+    }
   }
 
   async remove(id: string) {
