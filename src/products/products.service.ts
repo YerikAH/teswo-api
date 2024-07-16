@@ -30,11 +30,9 @@ export class ProductsService {
     try {
       const { images = [], ...productDetails } = createProductDto;
 
-      // como se esta creando dentro de la creación de un producto no es necesario opner el clvae de producto
       const product = this.productRepository.create({
         ...productDetails,
         images: images.map((image) =>
-          // creamos una imagen
           this.productImageRepository.create({ url: image }),
         ),
       });
@@ -53,7 +51,6 @@ export class ProductsService {
         skip: offset,
         relations: {
           images: true,
-          // especificamos que también queremos ver las relaciones
         },
       });
       return products.map((product) => ({
@@ -72,7 +69,6 @@ export class ProductsService {
 
     if (isUUID(term)) {
       product = await this.productRepository.findOneBy({ id: term });
-      // para cargar las imagenes nos vamos a nuestra entidad  y agregamos {eager: true}
     } else {
       const queryBuilder = this.productRepository.createQueryBuilder('prod');
       product = await queryBuilder
@@ -107,7 +103,7 @@ export class ProductsService {
     const product = await this.productRepository.preload({
       id: id,
       ...toUpdate,
-    }); // Se utiliza para cargar una entidad existente desde la base de datos y preparar esa entidad para ser actualizada con nuevos datos
+    });
     if (!product)
       throw new NotFoundException(`Producto with id: ${id} not found`);
 
@@ -117,21 +113,18 @@ export class ProductsService {
 
     try {
       if (images) {
-        // Si tiene imagenes, elimina todas las imagenes y después las vuelve a crear
         await queryRunner.manager.delete(ProductImage, { product: { id } });
         product.images = images.map((image) =>
           this.productImageRepository.create({ url: image }),
         );
       }
       await queryRunner.manager.save(product);
-      // Guarda o actualiza la entidad product en la base de datos dentro del contexto de la transacción manejada por el QueryRunner
       await queryRunner.commitTransaction();
       await queryRunner.release();
 
       return this.findOnePlain(id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      // Revierte todos los cambios realizados durante la transacción actual.
       await queryRunner.release();
       this.handleDBExceptions(error);
     }
@@ -151,7 +144,7 @@ export class ProductsService {
   }
 
   async deleteAllProducts() {
-    const query = this.productImageRepository.createQueryBuilder('product');
+    const query = this.productRepository.createQueryBuilder('product');
 
     try {
       return await query.delete().where({}).execute();

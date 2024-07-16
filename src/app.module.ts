@@ -6,6 +6,7 @@ import { ProductsModule } from './products/products.module';
 import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,8 +19,8 @@ import { FilesModule } from './files/files.module';
       database: process.env.DB_NAME,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      autoLoadEntities: true, // para cargar automaticamente las entidades
-      synchronize: true, // si eliminar una columna automaticamente se sincroniza, en producción no se usa, solo en desarollo
+      autoLoadEntities: true,
+      synchronize: true,
     }),
 
     ProductsModule,
@@ -29,6 +30,8 @@ import { FilesModule } from './files/files.module';
     SeedModule,
 
     FilesModule,
+
+    AuthModule,
   ],
   controllers: [],
   providers: [],
