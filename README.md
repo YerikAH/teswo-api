@@ -15,5 +15,3 @@ docket-compose up -d
 ```
 
 6. Levantar `yarn start:dev`
-
-Se agrego nuevas lineas :D
