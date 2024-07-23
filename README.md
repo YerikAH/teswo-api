@@ -5,6 +5,11 @@
 # TesWo API
 
 1. Clonar el respositorio
+
+```sh
+git clon e
+```
+
 2. Instalar las dependencias
 3. Clonar el archivo `.env.template` y renombrarlo a `.env`
 4. Cambiar las varialbes de entorno
