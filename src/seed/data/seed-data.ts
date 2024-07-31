@@ -1,3 +1,5 @@
+import { hashSync } from 'bcrypt';
+
 /* eslint-disable prettier/prettier */
 interface SeedProduct {
   description: string;
@@ -29,14 +31,14 @@ interface SeedData {
 export const initialData: SeedData = {
   users: [
     {
-      email: 'XXXXXXXXXXXXXXX',
-      password: '123456',
+      email: 'harvey@gmail.com',
+      password: hashSync('Abc123', 10),
       fullName: 'Admin User',
       roles: ['admin', 'user'],
     },
     {
-      email: 'XXXXXXXXXXXXXX',
-      password: '123456',
+      email: 'yerik@gmail.com',
+      password: hashSync('Abc123', 10),
       fullName: 'Regular User',
       roles: ['user'],
     },
