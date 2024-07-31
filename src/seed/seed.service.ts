@@ -15,7 +15,8 @@ export class SeedService {
   ) {}
   async runSeed() {
     await this.deleteTables();
-    await this.insertNewProducts();
+    const adminUser = await this.insertUsers();
+    await this.insertNewProducts(adminUser);
     return 'execute seed';
   }
 
@@ -25,18 +26,28 @@ export class SeedService {
     await queryBuilder.delete().where({}).execute();
   }
 
-  private async insertUsers() {}
+  private async insertUsers() {
+    const seedUsers = initialData.users;
+    const users: User[] = [];
 
-  private async insertNewProducts() {
+    seedUsers.forEach((user) => {
+      users.push(this.userRepository.create(user));
+    });
+
+    const dbUsers = await this.userRepository.save(users);
+    return dbUsers[0];
+  }
+
+  private async insertNewProducts(user: User) {
     await this.productRespository.deleteAllProducts();
 
     const products = initialData.products;
 
     const insertPromises = [];
 
-    // products.forEach((product) => {
-    //   insertPromises.push(this.productRespository.create(product));
-    // });
+    products.forEach((product) => {
+      insertPromises.push(this.productRespository.create(product, user));
+    });
 
     await Promise.all(insertPromises);
 
