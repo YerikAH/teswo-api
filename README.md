@@ -7,7 +7,7 @@
 1. Clonar el respositorio
 
 ```sh
-git clon e
+git clone 
 ```
 
 2. Instalar las dependencias
